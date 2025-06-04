@@ -4,7 +4,11 @@ import uvicorn, os, httpx, asyncio
 app = FastAPI(title="Supervisor Agent")
 
 AGENTS = {
-    "kitchen_agent": "http://192.168.0.107:8000/task",
+    # Internal service URLs for each delegate agent
+    # Use service names defined in docker-compose instead of
+    # hard-coded IP addresses so the agents can communicate in
+    # different deployment environments.
+    "kitchen_agent": "http://kitchen_agent:8000/task",
     "hallway_agent": "http://hallway_agent:8000/task",
     "office_agent": "http://office_agent:8000/task",
 }
