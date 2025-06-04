@@ -24,6 +24,18 @@
   <br>
   <button onclick="sendTask()">Send</button>
   <pre id="output"></pre>
+  <h2>LLM Chat</h2>
+  <textarea id="prompt" placeholder="Enter prompt"></textarea>
+  <br>
+  <label for="model">Model:</label>
+  <select id="model">
+    <option value="llama3">Llama 3.2 1B</option>
+    <option value="tinyllama">TinyLlama</option>
+    <option value="phi3">Phi-3 mini</option>
+  </select>
+  <br>
+  <button onclick="sendPrompt()">Chat</button>
+  <pre id="llm_output"></pre>
   <h2>Agents</h2>
   <ul id="agents"></ul>
   <script>
@@ -39,6 +51,18 @@
       });
       const data = await res.json();
       document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function sendPrompt() {
+      const prompt = document.getElementById('prompt').value;
+      const model = document.getElementById('model').value;
+      const res = await fetch('/llm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt, model: model })
+      });
+      const data = await res.json();
+      document.getElementById('llm_output').textContent = data.text || data.error || JSON.stringify(data);
     }
 
     async function refreshAgents() {

@@ -3,3 +3,5 @@ uvicorn[standard]
 httpx
 requests
 bme680
+transformers
+llama-cpp-python
