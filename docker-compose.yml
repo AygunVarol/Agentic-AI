@@ -1,0 +1,18 @@
+services:
+  supervisor_agent:
+    build: ./supervisor_agent
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kitchen_agent
+      - hallway_agent
+      - office_agent
+
+  kitchen_agent:
+    build: ./agents/kitchen_agent
+
+  hallway_agent:
+    build: ./agents/hallway_agent
+
+  office_agent:
+    build: ./agents/office_agent
