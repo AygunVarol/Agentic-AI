@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
 from pathlib import Path
+from datetime import datetime
 import uvicorn, os, httpx, asyncio
 
 app = FastAPI(title="Supervisor Agent")
@@ -15,6 +16,8 @@ AGENTS = {
     "hallway_agent": "http://hallway_agent:8000/task",
     "office_agent": "http://office_agent:8000/task",
 }
+
+LAST_SEEN = {}
 
 @app.get("/", response_class=HTMLResponse)
 async def ui():
@@ -31,6 +34,25 @@ def route(task: dict) -> str:
     # default
     return "office_agent"
 
+async def check_agent(name: str, task_url: str):
+    health_url = task_url.rsplit('/', 1)[0] + "/health"
+    async with httpx.AsyncClient() as client:
+        try:
+            resp = await client.get(health_url, timeout=2)
+            if resp.status_code == 200:
+                ts = datetime.utcnow().isoformat(timespec="seconds")
+                LAST_SEEN[name] = ts
+                return {"name": name, "online": True, "last_seen": ts}
+        except Exception:
+            pass
+    return {"name": name, "online": False, "last_seen": LAST_SEEN.get(name)}
+
+@app.get("/agents")
+async def agents_status():
+    return await asyncio.gather(
+        *[check_agent(name, url) for name, url in AGENTS.items()]
+    )
+
 @app.post("/task")
 async def handle_task(task: dict = Body(...)):
     delegate = route(task)
@@ -41,6 +63,8 @@ async def handle_task(task: dict = Body(...)):
         try:
             resp = await client.post(url, json=task, timeout=60)
             data = resp.json()
+            if resp.status_code == 200:
+                LAST_SEEN[delegate] = datetime.utcnow().isoformat(timespec="seconds")
         except Exception as e:
             data = {"error": str(e)}
     return {"delegate": delegate, "agent_response": data}
