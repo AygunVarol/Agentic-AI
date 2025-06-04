@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from pathlib import Path
 from datetime import datetime
 import uvicorn, os, httpx, asyncio
+from .llm_models import generate
 
 app = FastAPI(title="Supervisor Agent")
 INDEX_FILE = Path(__file__).resolve().parent / "static" / "index.html"
@@ -68,6 +69,17 @@ async def handle_task(task: dict = Body(...)):
         except Exception as e:
             data = {"error": str(e)}
     return {"delegate": delegate, "agent_response": data}
+
+
+@app.post("/llm")
+async def handle_llm(data: dict = Body(...)):
+    prompt = data.get("prompt", "")
+    model = data.get("model", "llama3")
+    try:
+        text = await asyncio.to_thread(generate, model, prompt)
+        return {"model": model, "text": text}
+    except Exception as e:
+        return {"error": str(e)}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))
