@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Body
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 import uvicorn, os, httpx, asyncio
 
 app = FastAPI(title="Supervisor Agent")
+INDEX_FILE = Path(__file__).resolve().parent / "static" / "index.html"
 
 AGENTS = {
     # Internal service URLs for each delegate agent
@@ -12,6 +15,10 @@ AGENTS = {
     "hallway_agent": "http://hallway_agent:8000/task",
     "office_agent": "http://office_agent:8000/task",
 }
+
+@app.get("/", response_class=HTMLResponse)
+async def ui():
+    return INDEX_FILE.read_text()
 
 def route(task: dict) -> str:
     # Prefer explicit agent field

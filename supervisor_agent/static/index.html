@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Supervisor Agent</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    textarea { width: 100%; height: 100px; }
+    select, button { margin-top: 1em; }
+    pre { background: #f4f4f4; padding: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Supervisor Agent</h1>
+  <textarea id="task" placeholder="Enter your task here"></textarea>
+  <br>
+  <label for="agent">Agent:</label>
+  <select id="agent">
+    <option value="">auto route</option>
+    <option value="kitchen">kitchen</option>
+    <option value="hallway">hallway</option>
+    <option value="office">office</option>
+  </select>
+  <br>
+  <button onclick="sendTask()">Send</button>
+  <pre id="output"></pre>
+  <script>
+    async function sendTask() {
+      const taskText = document.getElementById('task').value;
+      const agent = document.getElementById('agent').value;
+      const body = { task: taskText };
+      if (agent) body.agent = agent;
+      const res = await fetch('/task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
+
