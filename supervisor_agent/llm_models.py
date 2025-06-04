@@ -2,6 +2,11 @@ import os
 from typing import Optional
 
 try:
+    import torch
+except Exception:
+    torch = None
+
+try:
     from transformers import AutoModelForCausalLM, AutoTokenizer
 except Exception:
     AutoModelForCausalLM = None
@@ -65,20 +70,47 @@ def _load_phi3():
     return _phi3
 
 
-def generate(model_name: str, prompt: str, max_tokens: int = 128) -> str:
+def generate(
+    model_name: str,
+    prompt: str,
+    *,
+    max_tokens: int = 128,
+    temperature: float = 0.7,
+    top_p: float = 0.95,
+) -> str:
     """Generate text using the specified model."""
+    use_gpu = torch is not None and torch.cuda.is_available()
     if model_name == "llama3":
         model, tok = _load_llama3()
-        ids = tok(prompt, return_tensors="pt").input_ids
-        out = model.generate(ids, max_new_tokens=max_tokens)
+        device = "cuda" if use_gpu else "cpu"
+        ids = tok(prompt, return_tensors="pt").input_ids.to(device)
+        model = model.to(device)
+        out = model.generate(
+            ids,
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
         return tok.decode(out[0], skip_special_tokens=True)
     elif model_name == "tinyllama":
         llm = _load_tinyllama()
-        res = llm(prompt, max_tokens=max_tokens)
+        res = llm(
+            prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            n_gpu_layers=-1 if use_gpu else 0,
+        )
         return res["choices"][0]["text"]
     elif model_name == "phi3":
         llm = _load_phi3()
-        res = llm(prompt, max_tokens=max_tokens)
+        res = llm(
+            prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+            n_gpu_layers=-1 if use_gpu else 0,
+        )
         return res["choices"][0]["text"]
     else:
         raise ValueError(f"unknown model {model_name}")

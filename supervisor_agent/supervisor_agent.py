@@ -75,8 +75,18 @@ async def handle_task(task: dict = Body(...)):
 async def handle_llm(data: dict = Body(...)):
     prompt = data.get("prompt", "")
     model = data.get("model", "llama3")
+    max_tokens = int(data.get("max_tokens", 128))
+    temperature = float(data.get("temperature", 0.7))
+    top_p = float(data.get("top_p", 0.95))
     try:
-        text = await asyncio.to_thread(generate, model, prompt)
+        text = await asyncio.to_thread(
+            generate,
+            model,
+            prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
         return {"model": model, "text": text}
     except Exception as e:
         return {"error": str(e)}

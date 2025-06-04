@@ -42,3 +42,4 @@ Each agent auto‑detects the BME680; if the library or sensor isn’t found it 
 * Extend `SensorReader.read()` in `sensor_reader.py` for more sensors.
 * Enhance `route()` in `supervisor_agent.py` for richer delegation (LLM prompt, etc).
 * Add secure authentication with an API key header before production use.
+* Tune `/llm` parameters like `temperature`, `top_p`, and `max_tokens` via the web UI.
