@@ -6,7 +6,7 @@ This repo spins up **three sensor‑powered agents**—one per Raspberry Pi—
 
 | Service (Docker)  | Intended host | Role |
 |-------------------|---------------|------|
-| supervisor_agent  | Laptop        | Delegates tasks to RPis |
+| supervisor_agent  | Laptop        | Delegates tasks to RPIs |
 | kitchen_agent     | Kitchen RPi   | Reads BME680, serves data |
 | hallway_agent     | Hallway RPi   | Reads BME680, serves data |
 | office_agent      | Office RPi    | Reads BME680, serves data |
