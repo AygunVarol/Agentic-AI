@@ -24,6 +24,8 @@
   <br>
   <button onclick="sendTask()">Send</button>
   <pre id="output"></pre>
+  <h2>Agents</h2>
+  <ul id="agents"></ul>
   <script>
     async function sendTask() {
       const taskText = document.getElementById('task').value;
@@ -38,6 +40,22 @@
       const data = await res.json();
       document.getElementById('output').textContent = JSON.stringify(data, null, 2);
     }
+
+    async function refreshAgents() {
+      const res = await fetch('/agents');
+      const agents = await res.json();
+      const list = document.getElementById('agents');
+      list.innerHTML = '';
+      for (const a of agents) {
+        const li = document.createElement('li');
+        const last = a.last_seen || 'never';
+        li.textContent = `${a.name}: ${a.online ? 'online' : 'offline'} (last seen: ${last})`;
+        list.appendChild(li);
+      }
+    }
+
+    setInterval(refreshAgents, 5000);
+    refreshAgents();
   </script>
 </body>
 </html>

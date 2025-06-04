@@ -22,9 +22,13 @@ app = FastAPI(title="Office Agent")
 async def handle_task(task: dict = Body(...)):
     cmd = task.get("task", "").lower()
     if "sensor" in cmd or "temperature" in cmd or "humidity" in cmd:
-        return {"status":"ok","data": latest}
+        return {"status": "ok", "data": latest}
     # Echo fallback
-    return {"status":"ok","echo": task}
+    return {"status": "ok", "echo": task}
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "agent": LOCATION}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

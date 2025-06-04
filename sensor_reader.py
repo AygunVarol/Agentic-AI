@@ -1,5 +1,5 @@
 """Read BME680 sensor. Falls back to simulated data if hardware/lib unavailable."""
-import random, time, os
+import random, time
 from datetime import datetime
 
 try:
