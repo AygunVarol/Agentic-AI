@@ -17,30 +17,30 @@ try:
 except Exception:
     Llama = None
 
+try:
+    from huggingface_hub import hf_hub_download
+except Exception:
+    hf_hub_download = None
+
 BASE_CACHE_DIR = os.getenv("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
 
 LLAMA3_ID = "meta-llama/Llama-3.2-1B-Instruct"
 
-TINY_LLAMA_PATH = os.path.join(
-    BASE_CACHE_DIR,
-    "models--TheBloke--TinyLlama-1.1B-Chat-v1.0-GGUF",
-    "snapshots",
-    "52e7645ba7c309695bec7ac98f4f005b139cf465",
-    "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf",
-)
+TINY_LLAMA_REPO = "TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
+TINY_LLAMA_FILE = "tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
 
-PHI3_PATH = os.path.join(
-    BASE_CACHE_DIR,
-    "models--microsoft--Phi-3-mini-4k-instruct-gguf",
-    "snapshots",
-    "999f761fe19e26cf1a339a5ec5f9f201301cbb83",
-    "Phi-3-mini-4k-instruct-q4.gguf",
-)
+PHI3_REPO = "microsoft/Phi-3-mini-4k-instruct-gguf"
+PHI3_FILE = "Phi-3-mini-4k-instruct-q4.gguf"
 
 _llama3_model = None
 _llama3_tok = None
 _tinyllama = None
 _phi3 = None
+
+def _download_model(repo: str, filename: str) -> str:
+    if hf_hub_download is None:
+        raise RuntimeError("huggingface-hub not installed")
+    return hf_hub_download(repo_id=repo, filename=filename, cache_dir=BASE_CACHE_DIR)
 
 def _load_llama3():
     global _llama3_model, _llama3_tok
@@ -57,7 +57,8 @@ def _load_tinyllama():
     if _tinyllama is None:
         if Llama is None:
             raise RuntimeError("llama-cpp-python not installed")
-        _tinyllama = Llama(model_path=TINY_LLAMA_PATH)
+        path = _download_model(TINY_LLAMA_REPO, TINY_LLAMA_FILE)
+        _tinyllama = Llama(model_path=path)
     return _tinyllama
 
 
@@ -66,7 +67,8 @@ def _load_phi3():
     if _phi3 is None:
         if Llama is None:
             raise RuntimeError("llama-cpp-python not installed")
-        _phi3 = Llama(model_path=PHI3_PATH)
+        path = _download_model(PHI3_REPO, PHI3_FILE)
+        _phi3 = Llama(model_path=path)
     return _phi3
 
 
