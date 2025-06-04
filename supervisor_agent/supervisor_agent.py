@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from pathlib import Path
 from datetime import datetime
 import uvicorn, os, httpx, asyncio, json
-from .llm_models import generate
+from llm_models import generate
 
 app = FastAPI(title="Supervisor Agent")
 INDEX_FILE = Path(__file__).resolve().parent / "static" / "index.html"
