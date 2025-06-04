@@ -2,7 +2,7 @@ from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
 from pathlib import Path
 from datetime import datetime
-import uvicorn, os, httpx, asyncio
+import uvicorn, os, httpx, asyncio, json
 from .llm_models import generate
 
 app = FastAPI(title="Supervisor Agent")
@@ -71,6 +71,13 @@ async def handle_task(task: dict = Body(...)):
     return {"delegate": delegate, "agent_response": data}
 
 
+async def delegate_task(task_text: str, agent: str | None = None):
+    body = {"task": task_text}
+    if agent:
+        body["agent"] = agent
+    return await handle_task(body)
+
+
 @app.post("/llm")
 async def handle_llm(data: dict = Body(...)):
     prompt = data.get("prompt", "")
@@ -90,6 +97,43 @@ async def handle_llm(data: dict = Body(...)):
         return {"model": model, "text": text}
     except Exception as e:
         return {"error": str(e)}
+
+
+@app.post("/prompt")
+async def handle_prompt(data: dict = Body(...)):
+    """Process a natural language prompt with the LLM supervisor."""
+    prompt = data.get("prompt", "")
+    model = data.get("model", "llama3")
+    max_tokens = int(data.get("max_tokens", 256))
+    temperature = float(data.get("temperature", 0.7))
+    top_p = float(data.get("top_p", 0.95))
+
+    system = (
+        "You are a supervisor for three delegate agents. "
+        "Respond ONLY with JSON, a list of objects each containing 'task' and optional 'agent'."
+    )
+    full_prompt = f"{system}\nUser: {prompt}\nJSON:"
+
+    try:
+        output = await asyncio.to_thread(
+            generate,
+            model,
+            full_prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=top_p,
+        )
+        calls = json.loads(output)
+    except Exception as e:
+        return {"error": f"LLM failure: {e}", "raw": locals().get('output')}
+
+    results = []
+    for c in calls:
+        task_text = c.get("task")
+        agent = c.get("agent")
+        results.append(await delegate_task(task_text, agent))
+
+    return {"calls": calls, "results": results}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", 8000)))

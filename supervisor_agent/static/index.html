@@ -12,20 +12,7 @@
 </head>
 <body>
   <h1>Supervisor Agent</h1>
-  <textarea id="task" placeholder="Enter your task here"></textarea>
-  <br>
-  <label for="agent">Agent:</label>
-  <select id="agent">
-    <option value="">auto route</option>
-    <option value="kitchen">kitchen</option>
-    <option value="hallway">hallway</option>
-    <option value="office">office</option>
-  </select>
-  <br>
-  <button onclick="sendTask()">Send</button>
-  <pre id="output"></pre>
-  <h2>LLM Chat</h2>
-  <textarea id="prompt" placeholder="Enter prompt"></textarea>
+  <textarea id="prompt" placeholder="Describe your tasks"></textarea>
   <br>
   <label for="model">Model:</label>
   <select id="model">
@@ -41,32 +28,18 @@
   <label for="top_p">Top-p:</label>
   <input id="top_p" type="number" step="0.05" value="0.95" />
   <br>
-  <button onclick="sendPrompt()">Chat</button>
+  <button onclick="sendPrompt()">Send</button>
   <pre id="llm_output"></pre>
   <h2>Agents</h2>
   <ul id="agents"></ul>
   <script>
-    async function sendTask() {
-      const taskText = document.getElementById('task').value;
-      const agent = document.getElementById('agent').value;
-      const body = { task: taskText };
-      if (agent) body.agent = agent;
-      const res = await fetch('/task', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
-    }
-
     async function sendPrompt() {
       const prompt = document.getElementById('prompt').value;
       const model = document.getElementById('model').value;
       const maxTokens = parseInt(document.getElementById('max_tokens').value);
       const temperature = parseFloat(document.getElementById('temperature').value);
       const topP = parseFloat(document.getElementById('top_p').value);
-      const res = await fetch('/llm', {
+      const res = await fetch('/prompt', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -78,7 +51,7 @@
         })
       });
       const data = await res.json();
-      document.getElementById('llm_output').textContent = data.text || data.error || JSON.stringify(data);
+      document.getElementById('llm_output').textContent = JSON.stringify(data, null, 2);
     }
 
     async function refreshAgents() {

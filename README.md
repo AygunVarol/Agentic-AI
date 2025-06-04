@@ -18,15 +18,15 @@ docker compose build
 docker compose up -d
 ```
 
-Send a task from Windows CMD / PowerShell:
+Interact with the supervisor by sending a natural language prompt:
 
 ```bash
-curl -X POST "http://localhost:8000/task" ^
-     -H "Content-Type: application/json" ^
-     -d "{\"task\": \"get sensor data from kitchen\"}"
+curl -X POST "http://localhost:8000/prompt" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt":"Get the latest kitchen sensor data"}'
 ```
 
-The supervisor will route the request to **kitchen_agent** and return the latest sensor reading.
+The LLM-based supervisor will parse your prompt, delegate the task to the appropriate agent and return the agent response.
 
 ## Deploying on each RPi
 
